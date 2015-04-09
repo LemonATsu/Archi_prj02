@@ -1,0 +1,72 @@
+####################################################################
+#                                                                  #
+#                                                                  #
+#   ID: 102062207                                                  #
+#   Name: 蘇仕揚                                                   #
+#                                                                  #
+#       This is a readme file about Archi project1, which contains #
+#   information about its working process, design, of some details #
+#   related to this program.                                       #
+#                                                                  # 
+#   The simulator directory contains:                              # 
+#   main.c, reader.c, data.c, instrc.c, execute.c, operator.c,     # 
+#   error.c, obj.h, execute.h, operator.h, Makefile, README        #
+#                                                                  #
+####################################################################
+
+Description:
+
+    The main function of this program is to read machine code, and simulate
+the process of a cpu. It is consisting of 9 different parts:
+
+1. Makefile
+2. main
+3. reader
+4. data
+5. instrc
+6. execute
+7. operator
+8. register
+9. error 
+
+
+
+#Makefile:
+    use the command 'make' to create .exe file(single_cycle),
+    and use the command 'make clean' to remove .o .exe  file from directory.
+
+#main:
+    After .exe is running, main will do the task in order:
+    read file -> init data -> init instruction -> execute
+
+#reader:
+    The reader will read the byte data from dimage.bin and iimage.bin, and create
+    memory location to save the read data
+
+#data:
+    In data, it is about data initialization, and read/write data into memory.
+    If other parts of the program wants to access the data in dmemory, it have to
+    communicate with data.c to get what they want rather than access it directly.
+
+#instrc:
+    It currently initialize the imemory. It might have other function in future
+
+#execute:
+    The execute.c is responsible for processing the instruction in pc.
+    It will read the instruction from imemory, decode it and run the call the operator
+    to do the corresponding job.
+
+#operator:
+    It contains the implementation about the instruction, such as add, sub, lw, sw ..etc.
+    execute.c will call the function in operator, and complete the cycle.
+    Also, while doing operation, operator need to communicate with data.c, register.c, and error.c,
+    to complete the instruction.
+
+#register:
+    The register.c is a controller of register. Whenever an instruction need to read/write data from/to register,
+    It needs to contact to the function inside register.c.
+    While accessing register, register.c will call some error detection function from error.c to make sure the correctness.
+
+#error:
+    The error.c is provide function to check if error occur.
+    operator, data, register will use the function inside error.c
