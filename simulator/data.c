@@ -35,7 +35,6 @@ void data_init(struct words *d_img[]) {
             printf("More data then expect\n");
         } else {
             printf("Too many data\n");
-            exit(EXIT_FAILURE);
         }
     }
     int x, y = 2 + data_num;
@@ -44,11 +43,6 @@ void data_init(struct words *d_img[]) {
         //printf("data: 0x%08x\n", char_to_num(d_img[x]->machine_code));
         struct data* read_dat = malloc(sizeof(struct data));
         d_memo_data[x - 2] = read_dat;
-        if(!d_img[x]) {
-            printf("fatal error! num of data in D memory doesn't match!\n");
-            exit(EXIT_FAILURE);
-        }
-
         int temp = char_to_num(d_img[x]->machine_code), y;
         for(y = 0; y < 4; y ++) {
             read_dat->dat[y] = (temp >> (8 * (3 - y))) & 0x000000ff;
@@ -167,82 +161,3 @@ int sign_extend(int data, int sign_bit) {
     }
     return result;
 }
-/*short int data_read_half(int addr) {
-    int tar;
-    short int result = 0;
-    struct data* d_read;
-
-    if(addr > MEMO_LIMIT || addr < 0 || addr % 2 != 0) {
-        //error handle
-   
-    }
-    else if(addr == 0) tar = 0;
-    else tar = addr / 4;
-    d_read = d_memo_data[tar];
-    if(addr % 4 != 0) {
-        result = ((d_read->dat[2] << 8) + d_read->dat[3]) & 0x0000ffff;
-    } else {
-        result = ((d_read->dat[0] << 8) + d_read->dat[1]) & 0x0000ffff;
-    }
-    return result;
-}
-
-short int data_read_byte(int addr) {
-    int tar;
-    short int result = 0;
-    struct data* d_read;
-    if(addr > MEMO_LIMIT || addr < 0) {
-        //error handle
-   
-    }
-    else if(addr == 0) tar = 0;
-    else tar = addr / 4;
-
-    int offset = addr % 4;
-    d_read = d_memo_data[tar];
-    result = d_read->dat[offset];
-    return result;
-}*/
-/*void data_write_half(int addr, int data){
-    struct data* d_write;
-    unsigned int tar;
-    if(addr >= MEMO_LIMIT || addr < 0 || addr % 2 != 0) {
-        //error handle
-        printf("error: D memory out of bound(half): %08x, %x, %x\n", addr,data, pc);
-        exit(EXIT_FAILURE);
-    } else if(addr % 2 != 0) {
-        //error handle
-    }
-    else if(addr == 0) tar = 0;
-    else tar = addr / 4;
-
-    d_write = d_memo_data[tar];
-    if(d_write) {
-        int offset = addr % 4;
-        d_write->dat[offset] = (data >> 8) & 0x000000ff;
-        d_write->dat[offset + 1] = data & 0x000000ff;
-    } else {
-        //error handle
-    }
-
-}
-void data_write_byte(int addr, int data){
-    struct data* d_write;
-    unsigned int tar;
-    if(addr >= MEMO_LIMIT || addr < 0) {
-        //error handle
-        printf("error: D memory out of bound(byte): %08x\n", addr);
-        exit(EXIT_FAILURE);
-    }
-    else if(addr == 0) tar = 0;
-    else tar = addr / 4;
-
-    d_write = d_memo_data[tar];
-
-    if(d_write) { 
-        int offset = addr % 4;
-        d_write->dat[offset] = data & 0x000000ff;
-    } else {
-        //error handle
-    }
-}*/

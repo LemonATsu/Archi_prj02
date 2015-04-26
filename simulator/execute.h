@@ -70,5 +70,24 @@
 #define _srl 0x02
 #define _sra 0x03
 #define _jr 0x08
+//  stage:(IF is the last stage in implement. all the stage will -1(ID:1->0))
+#define _ID 0
+#define _EX 1
+#define _MEM 2
+#define _WB 3
 
+void cycle_output(int cyc, FILE *output);
+void execute();
+void CPU_init();
+int stall;
+int halt_cnt = 0;
+struct cpu CPU;
 
+void IF(int stall);
+void ID();
+void EX();
+void MEM();
+void WB();
+
+void do_stall();
+void do_fwd(int type_from, int type_to);
