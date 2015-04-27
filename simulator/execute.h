@@ -1,5 +1,6 @@
 //define opcode/func here.
 //also, about some register
+#ifndef _EXECUTE_H_
 #define true 1
 #define false 0
 //    register:
@@ -75,16 +76,16 @@
 #define _EX 1
 #define _MEM 2
 #define _WB 3
-
-void cycle_output(int cyc, FILE *output);
+#endif
+void cycle_output(int cyc, int stall, FILE *output);
 void execute();
 void CPU_init();
 int stall;
-int halt_cnt = 0;
+int halt_cnt;
 struct cpu CPU;
 
 void IF(int stall);
-void ID();
+void ID(int reg_EX, int reg_ME);
 void EX();
 void MEM();
 void WB();
