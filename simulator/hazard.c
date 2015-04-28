@@ -17,9 +17,18 @@ void fwd_init() {
     is_fwd_EX = 1;
 }
 
-//this function will be activated on ID stage.
-//it's mainly about recording forwarding data.
-//But it will also help branch do their forwarding
+// this function will be activated on ID stage.
+// it's mainly about recording forwarding data.
+// But it will also help branch do their forwarding
+//
+// for some instructions that don't need to fwd,
+// their reg_A, reg_B will be -1,
+// so it's impossible to have hazard detect here
+//
+// if reg_A and reg_B be -1, 
+// the only cnd they will have hazard is
+// reg_EX = -1 or reg_EX = -1
+// but it will fulfill the fwd cnd
 int hazard_check(int reg_EX, int reg_ME) {
     int reg_A, reg_B, result = 0, branch = 0;
     int op_cur = CPU.pipeline[0]->opcode;

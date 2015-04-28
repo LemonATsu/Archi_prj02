@@ -80,6 +80,7 @@
 #define is_load(A) A ==_lw || A ==_lh || A ==_lhu || A==_lb || A==_lbu
 #define is_store(A) A == _sw || A == _sh || A == _sb
 #endif
+void fwd_output(int fwd_to, FILE *output);
 void reg_output(int cyc, int stall, FILE *output);
 void cycle_output(int stall, FILE *output);
 void execute();

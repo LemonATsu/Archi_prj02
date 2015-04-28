@@ -20,7 +20,10 @@ void execute() {
         reg_EX = -1;
         reg_ME = -1;
 
+        //save the register content for later output.
         reg_copy();
+
+        //this stage will only be perform when it's not NOP
         if(notNOP(CPU.pipeline[3]->op_name))WB();
         if(notNOP(CPU.pipeline[2]->op_name))ME();
         if(notNOP(CPU.pipeline[1]->op_name))EX();
@@ -30,7 +33,7 @@ void execute() {
         error_output(cyc, err_file);       
 
         if(error_halt) break;
-        
+
         reg_output(cyc, stall ,snap_file);
         cycle_output(stall, snap_file);
         if(halt_cnt == 5) break;
@@ -79,15 +82,33 @@ void ME() {
         }
         reg_ME = i->wb;
         reg_write(ME_WB, 0, result);
-        
+
     } else if(is_store(opc)) {
-        int result = 0;
+        int data = i->rt;
+        int offset = reg_read(EX_ME, 0);
+        switch(opc) {
+            case _sw:
+                data_write(offset, data, 4);
+                break;
+            case _sh:
+                data = data & 0x0000ffff;
+                data_write(offset, data, 2);
+                break;
+            case _sb:
+                data = data & 0x000000ff;
+                data_write(offset, data, 1);
+                break;
+        }
+        //reg_ME isn't in use.
+        reg_ME = -1;
     } else {
 
         if(i->wb != -1) {
-        //has compute something to wait for write back
+            //has compute something to wait for write back
             reg_write(ME_WB, 0, reg_read(EX_ME, 0));
         }
+        //reg_ME isn't in use.
+        reg_ME = -1;
     }
 }
 
@@ -99,17 +120,20 @@ void EX() {
 
         //check the forwarding status. if = 0, it needs fwd
         if(!is_fwd_EX) {
+            //do fwd get a, b;
             if(fwd_EX_s != 0) a = fwd_unit(fwd_EX_type_s);
             if(fwd_EX_t != 0) b = fwd_unit(fwd_EX_type_t);
-            printf("EX doing FWD %d %d\n", a, b);
 
-            //do fwd get a, b;
         } else {
             if(i->ID_regA != -1) a = reg_read(CPU_REG, i->ID_regA);
             if(i->ID_regB != -1) b = reg_read(CPU_REG, i->ID_regB);
         }
+        //special case : sw
+        if(is_store(CPU.pipeline[1]->opcode)) {
+            i->rt = b;//sw
+        }
         reg_EX = i->wb;
-        
+
         //call ALU to work
         alu_unit(a, b);
     }
@@ -122,7 +146,6 @@ void ID(int reg_EX, int reg_ME) {
             int a = 0, b = 0;
             if(fwd_ID_s) a = fwd_unit(fwd_ID_type_s);
             if(fwd_ID_t) b = fwd_unit(fwd_ID_type_t);
-            printf("ID doing FWD %d %d\n", a, b);
         }
         h_c = hazard_check(reg_EX, reg_ME);
         if(h_c) do_stall();
@@ -162,32 +185,50 @@ void cycle_output(int stall, FILE *output) {
         fprintf(output, "IF: 0x%08X\n", CPU.pipeline[0]->bits);
         fprintf(output, "ID: %s", CPU.pipeline[1]->op_name);
 
-        if((!strcmp(CPU.pipeline[1]->op_name, "BEQ") || !strcmp(CPU.pipeline[1]->op_name, "BNE")) 
-                && !is_fwd_ID) {
-            //no forward will occur here except branch
-            //if it's BEQ or BNE and it need fwd
-            if(fwd_ID_s) {
-                if(fwd_ID_type_s == _EX) fprintf(output, " fwd_EX-DM_rs_$%d", fwd_ID_s);
-                else fprintf(output, " fwd_DM-WB_rs_$%d", fwd_ID_s);
-            }
-            if(fwd_ID_t) {
-                if(fwd_ID_type_t == _EX) fprintf(output, " fwd_EX-DM_rt_$%d", fwd_ID_t);
-                else fprintf(output, " fwd_DM-WB_rt_$%d", fwd_ID_t);
-            }
-            //clear after print
-            clear_fwd(_ID);
-        }
+        if(!is_fwd_ID) fwd_output(_ID, output);
         fprintf(output, "\n"); 
+
     } else {
         // stall happen
         fprintf(output, "IF: 0x%08X to_be_stalled\n", i_memo[pc / 4]->bits);
         fprintf(output, "ID: %s to_be_stalled\n", CPU.pipeline[0]->op_name); 
     }
 
-    fprintf(output, "EX: %s\n", CPU.pipeline[2]->op_name); 
+    fprintf(output, "EX: %s", CPU.pipeline[2]->op_name); 
+    if(!is_fwd_EX) fwd_output(_EX, output);    
+    fprintf(output, "\n"); 
+
     fprintf(output, "DM: %s\n", CPU.pipeline[3]->op_name); 
     fprintf(output, "WB: %s\n", CPU.pipeline[4]->op_name); 
     fprintf(output, "\n\n"); 
+}
+
+void fwd_output(int fwd_to, FILE *output) {
+    int reg_ps, reg_pt;
+    int type_s, type_t;
+    if(fwd_to == _ID) {
+        printf("fwd to ID\n");
+        reg_ps = fwd_ID_s;
+        reg_pt = fwd_ID_t;
+        type_s = fwd_ID_type_s; 
+        type_t = fwd_ID_type_t; 
+    } else {
+        reg_ps = fwd_EX_s;
+        reg_pt = fwd_EX_t;
+        type_s = fwd_EX_type_s;
+        type_t = fwd_EX_type_t;
+    }
+
+    if(reg_ps) {
+        if(type_s == _EX) fprintf(output, " fwd_EX-DM_rs_$%d", reg_ps);
+        else fprintf(output, " fwd_DM-WB_rs_$%d", reg_ps);
+    }
+    if(reg_pt) {
+        if(type_t == _EX) fprintf(output, " fwd_EX-DM_rt_$%d", reg_pt);
+        else fprintf(output, " fwd_DM-WB_rt_$%d", reg_pt);
+    }
+    //clear after print
+    clear_fwd(fwd_to);
 }
 
 void CPU_init() {
