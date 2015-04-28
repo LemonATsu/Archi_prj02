@@ -76,7 +76,7 @@
 #define _EX 1
 #define _ME 2
 #define _WB 3
-#define notNOP(A) strcmp(A, "NOP")
+#define notNOP(A) strcmp(CPU.pipeline[A]->op_name, "NOP")
 #define is_load(A) A ==_lw || A ==_lh || A ==_lhu || A==_lb || A==_lbu
 #define is_store(A) A == _sw || A == _sh || A == _sb
 #endif

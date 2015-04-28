@@ -21,7 +21,7 @@ int char_to_num(unsigned char code[]);
 void data_init(struct words *d_img[]) {
     sp = char_to_num(d_img[0]->machine_code);
     data_num = char_to_num(d_img[1]->machine_code);
-    //printf("stack pts: 0x%08x\n", sp);
+    printf("stack pts: 0x%08x\n", sp);
     //printf("# of data: 0x%08x\n", data_num);
 
     //error type: address overflow, needs to halt

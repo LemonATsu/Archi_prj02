@@ -1,7 +1,8 @@
-#include "register.h"
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "register.h"
+#include "execute.h"
+#include "obj.h"
 void reg_init() {
     int i;
     reg_IF_ID = 0x00000000;
@@ -12,6 +13,7 @@ void reg_init() {
         reg[i] = 0x00000000;
         reg_temp[i] = 0x00000000;
     }
+    reg[_sp] = sp;
 }
 
 void reg_copy() {

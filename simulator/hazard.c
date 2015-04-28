@@ -69,7 +69,11 @@ int hazard_check(int reg_EX, int reg_ME) {
     }
     if(me_cnd) {
         if((reg_ME == reg_A && !ex_cnd) || (reg_ME == reg_B && !ex_cnd)) {
-            fwd_signal(fwd_des, _ME, reg_ME, reg_A, reg_B);
+            // branch won't have chance to let ME-WB forward
+            // when ID needs to compute, ME-WB might still not available
+            // but when ME-WB is available
+            // the data is already write back to register(first half cycle)
+            if(!branch) fwd_signal(fwd_des, _ME, reg_ME, reg_A, reg_B);
             if(branch) result = 1;
         }
     }

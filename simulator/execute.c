@@ -14,7 +14,11 @@ void execute() {
     CPU_init();
     fwd_init();
     error_init();
+    reg_init();
     while(1) {
+        error_output(cyc, err_file);       
+        if(error_halt) break;
+        
         halt_cnt = 0;
         stall = 0;
         reg_EX = -1;
@@ -24,15 +28,13 @@ void execute() {
         reg_copy();
 
         //this stage will only be perform when it's not NOP
-        if(notNOP(CPU.pipeline[3]->op_name))WB();
-        if(notNOP(CPU.pipeline[2]->op_name))ME();
-        if(notNOP(CPU.pipeline[1]->op_name))EX();
-        if(notNOP(CPU.pipeline[0]->op_name))ID(reg_EX, reg_ME);
+        if(notNOP(_WB)) WB();
+        if(notNOP(_ME)) ME();
+        if(notNOP(_EX)) EX();
+        if(notNOP(_ID)) ID(reg_EX, reg_ME);
         IF(stall);
 
-        error_output(cyc, err_file);       
 
-        if(error_halt) break;
 
         reg_output(cyc, stall ,snap_file);
         cycle_output(stall, snap_file);
@@ -185,7 +187,7 @@ void cycle_output(int stall, FILE *output) {
         fprintf(output, "IF: 0x%08X\n", CPU.pipeline[0]->bits);
         fprintf(output, "ID: %s", CPU.pipeline[1]->op_name);
 
-        if(!is_fwd_ID) fwd_output(_ID, output);
+        if(!is_fwd_ID && notNOP(1)) fwd_output(_ID, output);
         fprintf(output, "\n"); 
 
     } else {
@@ -195,7 +197,7 @@ void cycle_output(int stall, FILE *output) {
     }
 
     fprintf(output, "EX: %s", CPU.pipeline[2]->op_name); 
-    if(!is_fwd_EX) fwd_output(_EX, output);    
+    if(!is_fwd_EX && notNOP(2)) fwd_output(_EX, output);    
     fprintf(output, "\n"); 
 
     fprintf(output, "DM: %s\n", CPU.pipeline[3]->op_name); 
