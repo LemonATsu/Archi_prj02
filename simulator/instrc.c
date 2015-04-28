@@ -87,10 +87,6 @@ void ins_decoder(struct ins* tar, int bits, int offset) {
     tar->c = tar->bits & 0x0000ffff;
     tar->j_label = tar->bits & 0x03ffffff;
     tar->wb = -1;
-    tar->fwd_type_s = -1;
-    tar->fwd_type_t = -1;
-    tar->f_s = 0;
-    tar->f_t = 0;
     tar->ID_regA = -1;
     tar->ID_regB = -1;
     opn_decoder(tar->op_name, tar->opcode, tar->func, &(tar->wb), 

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "execute.h"
 #include "obj.h"
+#include "hazard.h"
 #include "register.h"
 int reg_EX = -1, reg_ME = -1;
 void execute() {
@@ -10,6 +11,7 @@ void execute() {
     FILE *snap_file = fopen("snapshot.rpt", "w");
     FILE *err_file = fopen("error_dump.rpt", "w");
     CPU_init();
+    fwd_init();
     //error_init();
     while(1) {
         halt_cnt = 0;
@@ -81,24 +83,20 @@ void cycle_output(int cyc, int stall, FILE *output) {
         fprintf(output, "IF: 0x%08X\n", CPU.pipeline[0]->bits);
         fprintf(output, "ID: %s", CPU.pipeline[1]->op_name);
 
-        if((!strcmp(CPU.pipeline[1]->op_name, "BEQ") || !strcmp(CPU.pipeline[1]->op_name, "BNE")) && 
-            ((CPU.pipeline[1]->f_s || CPU.pipeline[1]->f_t))) {
+        if((!strcmp(CPU.pipeline[1]->op_name, "BEQ") || !strcmp(CPU.pipeline[1]->op_name, "BNE")) 
+            && !is_fwd_ID) {
             //no forward will occur here except branch
             //if it's BEQ or BNE and it need fwd
-            int fwd_s = CPU.pipeline[1]->f_s;
-            int fwd_t = CPU.pipeline[1]->f_t;
-            int s_type = CPU.pipeline[1]->fwd_type_s;
-            int t_type = CPU.pipeline[1]->fwd_type_t;
-            if(s_type != -1) {
-                if(s_type) fprintf(output, " fwd_EX-DM_rs_$%d", fwd_s);
-                else fprintf(output, " fwd_DM-WB_rs_$%d", fwd_s);
+            if(fwd_ID_s) {
+                if(fwd_ID_type_s) fprintf(output, " fwd_EX-DM_rs_$%d", fwd_ID_s);
+                else fprintf(output, " fwd_DM-WB_rs_$%d", fwd_ID_s);
             }
-            if(t_type != -1) {
-                if(t_type) fprintf(output, " fwd_EX-DM_rt_$%d", fwd_t);
-                else fprintf(output, " fwd_DM-WB_rt_$%d", fwd_t);
+            if(fwd_ID_t) {
+                if(fwd_ID_type_t) fprintf(output, " fwd_EX-DM_rt_$%d", fwd_ID_t);
+                else fprintf(output, " fwd_DM-WB_rt_$%d", fwd_ID_t);
             }
             //clear after print
-            clear_fwd(CPU.pipeline[1]);
+            clear_fwd();
         }
         fprintf(output, "\n"); 
     } else {
