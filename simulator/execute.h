@@ -74,10 +74,14 @@
 //  stage:(IF is the last stage in implement. all the stage will -1(ID:1->0))
 #define _ID 0
 #define _EX 1
-#define _MEM 2
+#define _ME 2
 #define _WB 3
+#define notNOP(A) strcmp(A, "NOP")
+#define is_load(A) A ==_lw || A ==_lh || A ==_lhu || A==_lb || A==_lbu
+#define is_store(A) A == _sw || A == _sh || A == _sb
 #endif
-void cycle_output(int cyc, int stall, FILE *output);
+void reg_output(int cyc, int stall, FILE *output);
+void cycle_output(int stall, FILE *output);
 void execute();
 void CPU_init();
 int stall;
@@ -87,7 +91,7 @@ struct cpu CPU;
 void IF(int stall);
 void ID(int reg_EX, int reg_ME);
 void EX();
-void MEM();
+void ME();
 void WB();
 
 void do_stall();

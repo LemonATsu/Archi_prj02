@@ -70,7 +70,6 @@ void ins_init(struct words *i_img[]) {
         int offset = pc + (x - 2) * 4;
         struct ins* i_init = i_memo[offset / 4];
         ins_decoder(i_init, char_to_num(i_img[x]->machine_code), offset);
-        printf("%d %d\n", i_init->ID_regA, i_init->ID_regB);
     }
 
 }
@@ -135,9 +134,9 @@ void opn_decoder(char* tar, int opc, int func, int *wb,
         else if(func == _nor) strcpy(tar, "NOR");
         else if(func == _nand) strcpy(tar, "NAND");
         else if(func == _slt) strcpy(tar, "SLT");
-        else if(func == _sll) {strcpy(tar, "SLL"); *regA = rt; *regB = -1;}
-        else if(func == _srl) {strcpy(tar, "SRL"); *regA = rt; *regB = -1;}
-        else if(func == _sra) {strcpy(tar, "SRA"); *regA = rt; *regB = -1;}
+        else if(func == _sll) {strcpy(tar, "SLL"); *regA = -1;}
+        else if(func == _srl) {strcpy(tar, "SRL"); *regA = -1;}
+        else if(func == _sra) {strcpy(tar, "SRA"); *regA = -1;}
         else if(func == _jr) {strcpy(tar, "JR"); *wb = -1; *regB = -1;}
     }
 
