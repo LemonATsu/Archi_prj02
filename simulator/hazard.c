@@ -29,8 +29,8 @@ void fwd_init() {
 // the only cnd they will have hazard is
 // reg_EX = -1 or reg_EX = -1
 // but it will fulfill the fwd cnd
-int hazard_check(int reg_EX, int reg_ME) {
-    int reg_A, reg_B, result = 0, branch = 0;
+int hazard_check(int reg_EX, int reg_ME, int reg_A, int reg_B) {
+    int result = 0, branch = 0;
     int op_cur = CPU.pipeline[0]->opcode;
     int op_ex = CPU.pipeline[1]->opcode;
     int ex_cnd = ((reg_EX != -1) && (reg_EX != 0)); // make sure it is not access 0
@@ -38,8 +38,6 @@ int hazard_check(int reg_EX, int reg_ME) {
     int fwd_des = -1;
     //reg_A is rs, reg_B is rt
     //but for sll/srl/sra, reg_A is rt.
-    reg_A = CPU.pipeline[0]->ID_regA;
-    reg_B = CPU.pipeline[0]->ID_regB;
 
     //check if branch or not
     if(op_cur == _beq || op_cur == _bne) {

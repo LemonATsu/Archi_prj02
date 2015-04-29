@@ -37,9 +37,8 @@
 #define _sra 0x03
 #define _jr 0x08
 void ins_init(struct words *i_img[]); 
-void opn_decoder(char *tar, int opc, int func, int *wb, int *regA, int *regB, int rd, int rs, int rt);
 void ins_decoder(struct ins* tar, int bits, int offset);
-
+void opn_decoder(char *tar, int opc, int func, int *wb, int *regA, int *regB, int rd, int rs, int rt);
 void ins_init(struct words *i_img[]) {
 
     pc = char_to_num(i_img[0]->machine_code);
@@ -73,6 +72,7 @@ void ins_init(struct words *i_img[]) {
     }
 
 }
+
 void ins_decoder(struct ins* tar, int bits, int offset) {
     //divide the machine code, put decode it as a instruction
     tar->pc_addr = offset;
@@ -86,15 +86,15 @@ void ins_decoder(struct ins* tar, int bits, int offset) {
     tar->c = tar->bits & 0x0000ffff;
     tar->j_label = tar->bits & 0x03ffffff;
     tar->wb = -1;
-    tar->ID_regA = -1;
-    tar->ID_regB = -1;
-    opn_decoder(tar->op_name, tar->opcode, tar->func, &(tar->wb), 
+    //tar->ID_regA = -1;
+    //tar->ID_regB = -1;
+    /*opn_decoder(tar->op_name, tar->opcode, tar->func, &(tar->wb), 
               &(tar->ID_regA), &(tar->ID_regB), tar->rd, tar->rs, tar->rt);
 
     //double check if it's NOP or not(NOP not always be 0x00000000)
-    if(tar->opcode == 0 && tar->func == 0 && tar->rt == 0 && tar->rd == 0)
-        strcpy(tar->op_name, "NOP");
+    */
 }
+/*
 void opn_decoder(char* tar, int opc, int func, int *wb, 
                  int *regA, int *regB, int rd, int rs, int rt) {
     //give the correspondence opcode/function name to the instruction
@@ -140,5 +140,4 @@ void opn_decoder(char* tar, int opc, int func, int *wb,
         else if(func == _jr) {strcpy(tar, "JR"); *wb = -1; *regB = -1;}
     }
 
-}
-
+}*/

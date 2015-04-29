@@ -1,13 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "execute.h"
 #include "obj.h"
 #include "hazard.h"
 #include "alu.h"
 #include "register.h"
 int reg_EX = -1, reg_ME = -1;
-//flush, branch, jump, not complete yet
-
+int dec_regA = -1, dec_regB = -1;
 void execute() {
     int x = 0, cyc = 0;
     int halt_spot = false;
@@ -17,6 +17,7 @@ void execute() {
     fwd_init();
     error_init();
     reg_init();
+
     while(1) {
         error_output(cyc, err_file);       
         if(error_halt) break;
@@ -34,16 +35,16 @@ void execute() {
         if(notNOP(_WB) && notHALT(_WB)) WB();
         if(notNOP(_ME) && notHALT(_ME)) ME();
         if(notNOP(_EX) && notHALT(_EX)) EX();
-        if(notNOP(_ID) && notHALT(_ID)) ID(reg_EX, reg_ME);
+        ID(reg_EX, reg_ME);
         IF(stall);
 
 
 
         reg_output(cyc, stall ,snap_file);
         cycle_output(stall, snap_file);
-        if(halt_cnt == 5) break;
+        if(halt_cnt == 4 && CPU.pipeline[0]->opcode == _halt) break;
         if(!stall) pc += 4;
-        if(flush) {pc = pc_jump; printf("jump\n");}
+        if(flush) {pc = pc_jump + 4; printf("jump\n");}
         cyc ++;
     }
     fclose(snap_file);
@@ -131,8 +132,8 @@ void EX() {
             if(fwd_EX_t != 0) b = fwd_unit(fwd_EX_type_t);
 
         } else {
-            if(i->ID_regA != -1) a = reg_read(CPU_REG, i->ID_regA);
-            if(i->ID_regB != -1) b = reg_read(CPU_REG, i->ID_regB);
+            if(dec_regA != -1) a = reg_read(CPU_REG, dec_regA);
+            if(dec_regB != -1) b = reg_read(CPU_REG, dec_regB);
         }
         //special case : sw
         if(is_store(CPU.pipeline[1]->opcode)) {
@@ -148,7 +149,16 @@ void EX() {
 void ID(int reg_EX, int reg_ME) {
     struct ins* i = CPU.pipeline[0];
     int h_c;
-    h_c = hazard_check(reg_EX, reg_ME);
+    dec_regA = -1;
+    dec_regB = -1;
+
+    ID_decoder();
+    
+    if(!notNOP(_ID) || !notHALT(_ID)) {
+        return;
+    }
+    
+    h_c = hazard_check(reg_EX, reg_ME, dec_regA, dec_regB);
     if(!h_c) { 
         int a = reg_read(CPU_REG, i->rs), b = reg_read(CPU_REG, i->rt);
 
@@ -173,9 +183,9 @@ void ID(int reg_EX, int reg_ME) {
             do_flush();
 
             if(i->func == _jr) pc_jump = a; // a = reg[s]
-            else if(i->opcode == _j) pc_jump = (pc_31_28 | (i->c * 4));
+            else if(i->opcode == _j) pc_jump = (pc_31_28 | (i->j_label * 4));
             else {
-                pc_jump = (pc_31_28 | (i->c * 4));
+                pc_jump = (pc_31_28 | (i->j_label * 4));
                 // write to reg(Does it needs to fwd?) 
                 reg_write(CPU_REG, _ra, pc);
             }
@@ -195,7 +205,6 @@ void IF(int stall) {
         CPU.pipeline[1] = CPU.pipeline[0];
         CPU.pipeline[0] = i_memo[pc / 4];
         if(CPU.pipeline[1]->opcode == _halt) halt_cnt++;
-        if(CPU.pipeline[0]->opcode == _halt) halt_cnt++;
     } else {
         CPU.pipeline[1] = S_NOP;
     }
@@ -277,4 +286,55 @@ void do_stall() {
 
 void do_flush() {
     flush = 1;
+}
+void ID_decoder() {
+    //give the correspondence opcode/function name to the instruction
+    //also, will determine the write back register here.
+    struct ins* i = CPU.pipeline[0];
+    int opc = i->opcode;
+    int func = i->func;
+    if(opc) {
+        i->wb = i->rt;
+        dec_regA = i->rs;
+        if(opc == _addi) strcpy(i->op_name, "ADDI");
+        else if(opc == _lw) strcpy(i->op_name, "LW");
+        else if(opc == _lh) strcpy(i->op_name, "LH");
+        else if(opc == _lh) strcpy(i->op_name, "LH");
+        else if(opc == _lhu) strcpy(i->op_name, "LHU");
+        else if(opc == _lb) strcpy(i->op_name, "LB");
+        else if(opc == _lbu) strcpy(i->op_name, "LBU");
+        else if(opc == _sw) {strcpy(i->op_name, "SW"); i->wb = -1;}
+        else if(opc == _sh) {strcpy(i->op_name, "SH"); i->wb = -1;}
+        else if(opc == _sb) {strcpy(i->op_name, "SB"); i->wb = -1;}
+        else if(opc == _lui) {strcpy(i->op_name, "LUI"); dec_regA = -1;}
+        else if(opc == _andi) strcpy(i->op_name, "ANDI");
+        else if(opc == _ori) strcpy(i->op_name, "ORI");
+        else if(opc == _nori) strcpy(i->op_name, "NORI");
+        else if(opc == _slti) strcpy(i->op_name, "SLTI");
+        else if(opc == _beq) {strcpy(i->op_name, "BEQ"); i->wb = -1; dec_regB = i->rt;}
+        else if(opc == _bne) {strcpy(i->op_name, "BNE"); i->wb = -1; dec_regB = i->rt;}
+        else if(opc == _j) {strcpy(i->op_name, "J"); i->wb = -1;}
+        else if(opc == _jal) {strcpy(i->op_name, "JAL"); i->wb = 31;}
+        else if(opc == _halt) {strcpy(i->op_name, "HALT"); i->wb = -1; dec_regA = -1;}
+    } else {
+        i->wb = i->rd;
+        dec_regA = i->rs;
+        dec_regB = i->rt;
+        if(func == _add) strcpy(i->op_name, "ADD");
+        else if(func == _sub) strcpy(i->op_name, "SUB");
+        else if(func == _and) strcpy(i->op_name, "AND");
+        else if(func == _or) strcpy(i->op_name, "OR");
+        else if(func == _xor) strcpy(i->op_name, "XOR");
+        else if(func == _nor) strcpy(i->op_name, "NOR");
+        else if(func == _nand) strcpy(i->op_name, "NAND");
+        else if(func == _slt) strcpy(i->op_name, "SLT");
+        else if(func == _sll) {strcpy(i->op_name, "SLL"); dec_regA = -1;}
+        else if(func == _srl) {strcpy(i->op_name, "SRL"); dec_regA = -1;}
+        else if(func == _sra) {strcpy(i->op_name, "SRA"); dec_regA = -1;}
+        else if(func == _jr) {strcpy(i->op_name, "JR"); i->wb = -1; dec_regB = -1;}
+    }
+    
+    if(i->opcode == 0 && i->func == 0 && i->rt == 0 && i->rd == 0)
+        strcpy(i->op_name, "NOP");
+
 }

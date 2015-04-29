@@ -100,6 +100,7 @@ void EX();
 void ME();
 void WB();
 
+void ID_decoder();
 void do_stall();
 void do_flush();
 void do_fwd(int type_from, int type_to);

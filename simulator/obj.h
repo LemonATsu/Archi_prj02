@@ -30,8 +30,8 @@ struct ins{
     unsigned int j_label;
     char op_name[6];
     int wb;
-    int ID_regA;
-    int ID_regB;
+//    int ID_regA;
+//    int ID_regB;
 };
 
 struct cpu {
