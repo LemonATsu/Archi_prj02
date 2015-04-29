@@ -101,21 +101,25 @@ void clear_fwd(int fwd_to) {
 void fwd_signal(int fwd_to, int type, int reg_fwd, int reg_A, int reg_B) {
     if(reg_fwd == reg_A) {
         //check where to fwd
-        if(fwd_to == _ID) { 
+        if(fwd_to == _ID) {
             fwd_ID_s = reg_A; //forward to s;
             fwd_ID_type_s = type; //use what kind of reg (EX-ME or ME-WB)
+            o_sync_fwd(_ID); 
         } else {
             fwd_EX_s = reg_A; //forward to s;
             fwd_EX_type_s = type; //use what kind of reg
+            o_sync_fwd(_EX); 
         }
     }
     if(reg_fwd == reg_B) {
         if(fwd_to == _ID) {
             fwd_ID_t = reg_B; //forward to t;
             fwd_ID_type_t = type; //use what kind of reg
+            o_sync_fwd(_ID); 
         } else {
             fwd_EX_t = reg_B; //forward to t;
             fwd_EX_type_t = type; //use what kind of reg
+            o_sync_fwd(_EX); 
         }
     }
 

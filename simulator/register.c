@@ -43,7 +43,8 @@ int reg_read(int type, int tar) {
 void reg_write(int type, int tar, int data) {
     switch(type) {
         case CPU_REG:
-            reg[tar] = data;
+            if(tar == 0) write_to_zero();
+            else reg[tar] = data;
             break;
         case EX_ME:
             reg_EX_ME = data;
@@ -51,9 +52,5 @@ void reg_write(int type, int tar, int data) {
         case ME_WB:
             reg_ME_WB = data;
             break;
-    }
-    if(tar == 0 && type == CPU_REG) {
-        write_to_zero();
-        reg[tar] = 0;
     }
 }

@@ -3,12 +3,12 @@
 CC = cc
 CFLAGS = -c -Wall
 LDFLAGS = 
-SOURCES = data.c main.c reader.c hazard.c instrc.c execute.c  error.c register.c alu.c
+SOURCES = data.c main.c reader.c hazard.c instrc.c execute.c  error.c report.c register.c alu.c
 OBJECTS = $(SOURCES:.c = .o)
 EXECUTABLE = pipeline
 
 # Include .h file here
-INCLUDES = obj.h excute.h hazard.h register.h alu.h error.h
+INCLUDES = obj.h excute.h hazard.h register.h alu.h error.h report.h
 all: $(SOURCES) $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)

@@ -109,7 +109,9 @@ void load_store(int s, short c) {
 }
 
 void lui(short c) {
-    reg_EX_ME = c << 16;
+    unsigned int tmp = c;
+    tmp = tmp << 16;
+    reg_EX_ME = tmp;
 }
 
 void andi(int s, short c) {

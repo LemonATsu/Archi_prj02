@@ -83,15 +83,13 @@
 #define is_jump(A) !strcmp(CPU.pipeline[A]->op_name, "JAL") || !strcmp(CPU.pipeline[A]->op_name, "JR") || !strcmp(CPU.pipeline[A]->op_name, "J")
 #define notHALT(A) strcmp(CPU.pipeline[A]->op_name, "HALT")
 #endif
-void fwd_output(int fwd_to, FILE *output);
-void reg_output(int cyc, int stall, FILE *output);
-void cycle_output(int stall, FILE *output);
 void execute();
 void CPU_init();
 int stall;
 int flush;
 int pc_jump;
 int halt_cnt;
+int g_cyc;
 struct cpu CPU;
 
 void IF(int stall);
@@ -102,5 +100,6 @@ void WB();
 
 void ID_decoder();
 void do_stall();
+void be_flush();
 void do_flush();
 void do_fwd(int type_from, int type_to);
