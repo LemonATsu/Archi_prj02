@@ -49,7 +49,7 @@ int hazard_check(int reg_EX, int reg_ME, int reg_A, int reg_B) {
     //this will happen only after stall, so the if(ex_cnd) and if(me_cnd) will not be trigger
     //due to the reason that EX is NOP.
     if(branch && !is_fwd_ID) {
-        printf("do branch fowarding\n");
+        //printf("do branch fowarding\n");
         return 0;
     }
 

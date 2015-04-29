@@ -79,8 +79,8 @@
 #define notNOP(A) strcmp(CPU.pipeline[A]->op_name, "NOP")
 #define is_load(A) A ==_lw || A ==_lh || A ==_lhu || A==_lb || A==_lbu
 #define is_store(A) A == _sw || A == _sh || A == _sb
-#define is_branch(A) CPU.pipeline[A]->opcode == _beq || CPU.pipeline[A]->opcode == _bne
-#define is_jump(A) CPU.pipeline[A]->opcode == _jal || CPU.pipeline[A]->func == _jr || CPU.pipeline[A]->opcode == _j
+#define is_branch(A) !strcmp(CPU.pipeline[A]->op_name, "BEQ") || !strcmp(CPU.pipeline[A]->op_name, "BNE")
+#define is_jump(A) !strcmp(CPU.pipeline[A]->op_name, "JAL") || !strcmp(CPU.pipeline[A]->op_name, "JR") || !strcmp(CPU.pipeline[A]->op_name, "J")
 #define notHALT(A) strcmp(CPU.pipeline[A]->op_name, "HALT")
 #endif
 void fwd_output(int fwd_to, FILE *output);

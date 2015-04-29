@@ -21,7 +21,7 @@ int char_to_num(unsigned char code[]);
 void data_init(struct words *d_img[]) {
     sp = char_to_num(d_img[0]->machine_code);
     data_num = char_to_num(d_img[1]->machine_code);
-    printf("stack pts: 0x%08x\n", sp);
+    //printf("stack pts: 0x%08x\n", sp);
     //printf("# of data: 0x%08x\n", data_num);
 
     //error type: address overflow, needs to halt
@@ -29,7 +29,7 @@ void data_init(struct words *d_img[]) {
         //error handle
         //the error condition are still unsure
         //must halt
-        printf("%d data_num\n", data_num);
+        //printf("%d data_num\n", data_num);
         printf("error handle ...\n");
         if(d_img[3 + data_num]) {
             printf("More data then expect\n");
@@ -47,7 +47,7 @@ void data_init(struct words *d_img[]) {
         for(y = 0; y < 4; y ++) {
             read_dat->dat[y] = (temp >> (8 * (3 - y))) & 0x000000ff;
         }
-        read_dat->addr = (x - 2) * 4;
+        //printf("%d %d\n", x - 2, temp);
     }
 
    // initialize to zero

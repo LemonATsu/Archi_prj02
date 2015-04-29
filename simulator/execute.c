@@ -17,7 +17,7 @@ void execute() {
     fwd_init();
     error_init();
     reg_init();
-
+    
     while(1) {
         error_output(cyc, err_file);       
         if(error_halt) break;
@@ -27,7 +27,6 @@ void execute() {
         pc_jump = 0;
         reg_EX = -1;
         reg_ME = -1;
-
         //save the register content for later output.
         reg_copy();
 
@@ -44,8 +43,9 @@ void execute() {
         cycle_output(stall, snap_file);
         if(halt_cnt == 4 && CPU.pipeline[0]->opcode == _halt) break;
         if(!stall) pc += 4;
-        if(flush) {pc = pc_jump + 4; printf("jump\n");}
+        if(flush) {pc = pc_jump + 4;}
         cyc ++;
+        if(cyc >= 1000000) break;
     }
     fclose(snap_file);
     fclose(err_file);
@@ -136,8 +136,12 @@ void EX() {
             if(dec_regB != -1) b = reg_read(CPU_REG, dec_regB);
         }
         //special case : sw
-        if(is_store(CPU.pipeline[1]->opcode)) {
+        if(is_store(i->opcode)) {
             i->rt = b;//sw
+        }
+
+        if(i->opcode == _jal) {
+            reg_write(EX_ME, 0, i->pc_addr + 4);
         }
         reg_EX = i->wb;
 
@@ -167,15 +171,16 @@ void ID(int reg_EX, int reg_ME) {
             if(fwd_ID_t) b = fwd_unit(fwd_ID_type_t);
         }
         if(is_branch(_ID)) {
-
             if((i->opcode == _beq) && (a == b)) {
                 // BEQ
+                //printf("beq %d %d %d %x\n", a, b, i->c, i->pc_addr);
                 do_flush();
-                pc_jump = pc + 4 + (i->c * 4);
+                pc_jump = i->pc_addr + (i->c * 4);
             } else if((i->opcode == _bne) &&(a != b)) {
                 // BNE
+                //printf("bne %d %d %d %x\n", a, b, i->c, i->pc_addr);
                 do_flush();
-                pc_jump = pc + 4 + (i->c * 4);
+                pc_jump = i->pc_addr + (i->c * 4);
             }
 
         } else if(is_jump(_ID)) {
@@ -186,9 +191,9 @@ void ID(int reg_EX, int reg_ME) {
             else if(i->opcode == _j) pc_jump = (pc_31_28 | (i->j_label * 4));
             else {
                 pc_jump = (pc_31_28 | (i->j_label * 4));
-                // write to reg(Does it needs to fwd?) 
-                reg_write(CPU_REG, _ra, pc);
+                // when EX, write to reg. 
             }
+            //printf("do jump to %x %s %x\n", pc_jump, i->op_name, i->pc_addr);
         }
     }
     else do_stall();
@@ -203,7 +208,8 @@ void IF(int stall) {
     //if stall, ID will be keep at [0]
     if(!stall) {
         CPU.pipeline[1] = CPU.pipeline[0];
-        CPU.pipeline[0] = i_memo[pc / 4];
+        if(!flush) CPU.pipeline[0] = i_memo[pc / 4];
+        else CPU.pipeline[0] = S_NOP;
         if(CPU.pipeline[1]->opcode == _halt) halt_cnt++;
     } else {
         CPU.pipeline[1] = S_NOP;
@@ -250,7 +256,7 @@ void fwd_output(int fwd_to, FILE *output) {
     int reg_ps, reg_pt;
     int type_s, type_t;
     if(fwd_to == _ID) {
-        printf("fwd to ID\n");
+        //printf("fwd to ID\n");
         reg_ps = fwd_ID_s; //the $s need to be fwd in ID
         reg_pt = fwd_ID_t;
         type_s = fwd_ID_type_s; //type of fwd: EX-ME or ME-WB 
