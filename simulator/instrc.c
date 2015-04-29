@@ -120,7 +120,7 @@ void opn_decoder(char* tar, int opc, int func, int *wb,
         else if(opc == _beq) {strcpy(tar, "BEQ"); *wb = -1; *regB = rt;}
         else if(opc == _bne) {strcpy(tar, "BNE"); *wb = -1; *regB = rt;}
         else if(opc == _j) {strcpy(tar, "J"); *wb = -1;}
-        else if(opc == _jal) {strcpy(tar, "JAL"); *wb = -1;}
+        else if(opc == _jal) {strcpy(tar, "JAL"); *wb = 31;}
         else if(opc == _halt) {strcpy(tar, "HALT"); *wb = -1; *regA = -1;}
     } else {
         *wb = rd;

@@ -6,6 +6,8 @@
 #include "alu.h"
 #include "register.h"
 int reg_EX = -1, reg_ME = -1;
+//flush, branch, jump, not complete yet
+
 void execute() {
     int x = 0, cyc = 0;
     int halt_spot = false;
@@ -18,9 +20,10 @@ void execute() {
     while(1) {
         error_output(cyc, err_file);       
         if(error_halt) break;
-        
         halt_cnt = 0;
         stall = 0;
+        flush = 0;
+        pc_jump = 0;
         reg_EX = -1;
         reg_ME = -1;
 
@@ -28,10 +31,10 @@ void execute() {
         reg_copy();
 
         //this stage will only be perform when it's not NOP
-        if(notNOP(_WB)) WB();
-        if(notNOP(_ME)) ME();
-        if(notNOP(_EX)) EX();
-        if(notNOP(_ID)) ID(reg_EX, reg_ME);
+        if(notNOP(_WB) && notHALT(_WB)) WB();
+        if(notNOP(_ME) && notHALT(_ME)) ME();
+        if(notNOP(_EX) && notHALT(_EX)) EX();
+        if(notNOP(_ID) && notHALT(_ID)) ID(reg_EX, reg_ME);
         IF(stall);
 
 
@@ -40,6 +43,7 @@ void execute() {
         cycle_output(stall, snap_file);
         if(halt_cnt == 5) break;
         if(!stall) pc += 4;
+        if(flush) {pc = pc_jump; printf("jump\n");}
         cyc ++;
     }
     fclose(snap_file);
@@ -117,7 +121,7 @@ void ME() {
 void EX() {
     struct ins* i = CPU.pipeline[1];
     //printf("%d %s\n", i->wb, i->op_name);
-    if(i->wb != -1 && strcmp(i->op_name, "NOP")) {
+    if(i->wb != -1) {
         int a = 0, b = 0;
 
         //check the forwarding status. if = 0, it needs fwd
@@ -142,16 +146,42 @@ void EX() {
 }
 
 void ID(int reg_EX, int reg_ME) {
-    if(strcmp(CPU.pipeline[0]->op_name, "NOP")) {
-        int h_c;
+    struct ins* i = CPU.pipeline[0];
+    int h_c;
+    h_c = hazard_check(reg_EX, reg_ME);
+    if(!h_c) { 
+        int a = reg_read(CPU_REG, i->rs), b = reg_read(CPU_REG, i->rt);
+
         if(!is_fwd_ID) {
-            int a = 0, b = 0;
             if(fwd_ID_s) a = fwd_unit(fwd_ID_type_s);
             if(fwd_ID_t) b = fwd_unit(fwd_ID_type_t);
         }
-        h_c = hazard_check(reg_EX, reg_ME);
-        if(h_c) do_stall();
+        if(is_branch(_ID)) {
+
+            if((i->opcode == _beq) && (a == b)) {
+                // BEQ
+                do_flush();
+                pc_jump = pc + 4 + (i->c * 4);
+            } else if((i->opcode == _bne) &&(a != b)) {
+                // BNE
+                do_flush();
+                pc_jump = pc + 4 + (i->c * 4);
+            }
+
+        } else if(is_jump(_ID)) {
+            int pc_31_28 = pc & 0xf0000000;
+            do_flush();
+
+            if(i->func == _jr) pc_jump = a; // a = reg[s]
+            else if(i->opcode == _j) pc_jump = (pc_31_28 | (i->c * 4));
+            else {
+                pc_jump = (pc_31_28 | (i->c * 4));
+                // write to reg(Does it needs to fwd?) 
+                reg_write(CPU_REG, _ra, pc);
+            }
+        }
     }
+    else do_stall();
 }
 
 void IF(int stall) {
@@ -177,14 +207,16 @@ void reg_output(int cyc, int stall, FILE *output) {
     for(i = 0; i < 32; i ++) {
         fprintf(output, "$%02d: 0x%08X\n", i, reg_temp[i]);
     }
+    fprintf(output, "PC: 0x%08X\n", pc);
 }
 void cycle_output(int stall, FILE *output) {
 
-    fprintf(output, "PC: 0x%08X\n", pc);
 
     if(!stall) {
         //stall only happen in IF & ID
-        fprintf(output, "IF: 0x%08X\n", CPU.pipeline[0]->bits);
+        if(!flush) fprintf(output, "IF: 0x%08X\n", CPU.pipeline[0]->bits);
+        else fprintf(output, "IF: 0x%08X to_be_flushed\n", CPU.pipeline[0]->bits);
+
         fprintf(output, "ID: %s", CPU.pipeline[1]->op_name);
 
         if(!is_fwd_ID && notNOP(1)) fwd_output(_ID, output);
@@ -210,9 +242,9 @@ void fwd_output(int fwd_to, FILE *output) {
     int type_s, type_t;
     if(fwd_to == _ID) {
         printf("fwd to ID\n");
-        reg_ps = fwd_ID_s;
+        reg_ps = fwd_ID_s; //the $s need to be fwd in ID
         reg_pt = fwd_ID_t;
-        type_s = fwd_ID_type_s; 
+        type_s = fwd_ID_type_s; //type of fwd: EX-ME or ME-WB 
         type_t = fwd_ID_type_t; 
     } else {
         reg_ps = fwd_EX_s;
@@ -242,3 +274,7 @@ void CPU_init() {
 void do_stall() {
     stall = 1;
 } // let other component can stall
+
+void do_flush() {
+    flush = 1;
+}

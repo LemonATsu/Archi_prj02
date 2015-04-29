@@ -79,6 +79,9 @@
 #define notNOP(A) strcmp(CPU.pipeline[A]->op_name, "NOP")
 #define is_load(A) A ==_lw || A ==_lh || A ==_lhu || A==_lb || A==_lbu
 #define is_store(A) A == _sw || A == _sh || A == _sb
+#define is_branch(A) CPU.pipeline[A]->opcode == _beq || CPU.pipeline[A]->opcode == _bne
+#define is_jump(A) CPU.pipeline[A]->opcode == _jal || CPU.pipeline[A]->func == _jr || CPU.pipeline[A]->opcode == _j
+#define notHALT(A) strcmp(CPU.pipeline[A]->op_name, "HALT")
 #endif
 void fwd_output(int fwd_to, FILE *output);
 void reg_output(int cyc, int stall, FILE *output);
@@ -86,6 +89,8 @@ void cycle_output(int stall, FILE *output);
 void execute();
 void CPU_init();
 int stall;
+int flush;
+int pc_jump;
 int halt_cnt;
 struct cpu CPU;
 
@@ -96,4 +101,5 @@ void ME();
 void WB();
 
 void do_stall();
+void do_flush();
 void do_fwd(int type_from, int type_to);
