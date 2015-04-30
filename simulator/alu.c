@@ -12,7 +12,7 @@ void alu_unit(int s, int t) {
 
         if(opc == _addi) addi(s, c);
         else if(opc == _halt) printf("encounter halt\n");
-        else if(is_load(opc)) load_store(s, c);
+        else if(is_load(opc) || is_store(opc)) load_store(s, c);
         else if(opc == _lui) lui(c); 
         else if(opc == _andi) andi(s, c);
         else if(opc == _ori) ori(s, c);
@@ -86,7 +86,7 @@ void sr(int mode, int t, int shamt){
         reg_EX_ME = t >> shamt;
     } else {
         unsigned int result = t;
-        result = t >> shamt; // unsigned int won't do
+        result = result >> shamt; // unsigned int won't do
         reg_EX_ME = result;
     }
 

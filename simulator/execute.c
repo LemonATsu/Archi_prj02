@@ -205,8 +205,7 @@ void IF(int stall) {
 
 void CPU_init() {
     int i = 0;
-    for(i = 0; i < 5; i ++)
-        CPU.pipeline[i] = S_NOP;
+    for(i = 0; i < 5; i ++) CPU.pipeline[i] = S_NOP;
 }
 
 void do_stall() {stall = 1;} // let other component can stall
