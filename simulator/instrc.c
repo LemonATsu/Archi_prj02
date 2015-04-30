@@ -52,4 +52,10 @@ void ins_decoder(struct ins* tar, int bits, int offset) {
     tar->c = tar->bits & 0x0000ffff;
     tar->j_label = tar->bits & 0x03ffffff;
     tar->wb = -1;
+    tar->fwd_id = 0;
+    tar->fwd_ex = 0;
+    tar->fwd_to_s = -1;
+    tar->fwd_to_t = -1;
+    tar->value_s = 0;
+    tar->value_t = 0;
 }

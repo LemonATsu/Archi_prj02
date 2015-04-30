@@ -66,6 +66,8 @@ void and(int mode, int s, int t) {
 
 void or(int mode, int s, int t) {
     // nor/xor/or
+
+
     if(mode == 2) reg_EX_ME = ~(s | t);
     else if(mode == 1) reg_EX_ME = s ^ t;
     else reg_EX_ME = s | t;

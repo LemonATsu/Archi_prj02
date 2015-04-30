@@ -15,11 +15,8 @@ void execute() {
     FILE *snap_file = fopen("snapshot.rpt", "w");
     FILE *err_file = fopen("error_dump.rpt", "w");
     CPU_init();
-    fwd_init();
     error_init();
     reg_init();
-    o_init(_ID);
-    o_init(_EX);
     while(1) {
         g_cyc = cyc;
         error_output(cyc, err_file);       
@@ -29,7 +26,7 @@ void execute() {
         stall = 0;
         reg_EX = -1;
         reg_ME = -1;
-        
+
         reg_output(cyc, stall ,snap_file);
 
 
@@ -47,14 +44,16 @@ void execute() {
         if(halt_cnt == 5) break;
 
         if(!stall) pc += 4;
+        //printf("cyc:%d %08x %08x %08x\n", cyc, reg[9], reg_EX_ME, reg_ME_WB);
 
 
         if(flush) do_flush();
-
         cyc ++;
 
+
+
         if(cyc >= 1000000) break;
-        //if(cyc >= 12) break;
+        //if(cyc >= 35) break;
     }
     fclose(snap_file);
     fclose(err_file);
@@ -95,7 +94,7 @@ void ME() {
         reg_write(ME_WB, 0, result);
 
     } else if(is_store(opc)) {
-        int data = i->rt;
+        int data = i->value_t;
         int offset = reg_read(EX_ME, 0);
         if(opc == _sw) { //sw
             data_write(offset, data, 4);
@@ -108,7 +107,7 @@ void ME() {
         }
         //reg_ME isn't in use.
     } else {
-         
+
         //has compute something to wait for write back
         if(i->wb != -1) reg_write(ME_WB, 0, reg_read(EX_ME, 0));
         //reg_ME isn't in use.
@@ -119,29 +118,9 @@ void EX() {
     struct ins* i = CPU.pipeline[1];
     //printf("%d %s\n", i->wb, i->op_name);
     if(i->wb != -1 || is_store(i->opcode) || is_load(i->opcode)) {
-        int a = 0, b = 0;
-
-        if(dec_regA != -1) a = reg_read(CPU_REG, dec_regA);
-        if(dec_regB != -1) b = reg_read(CPU_REG, dec_regB);
-        //check the forwarding status. if = 0, it needs fwd
-        if(!is_fwd_EX) {
-            //do fwd get a, b;
-            if(fwd_EX_s != 0) a = fwd_unit(fwd_EX_type_s);
-            if(fwd_EX_t != 0) b = fwd_unit(fwd_EX_type_t);
-
-            clear_fwd(_EX);
-
-        }
-        //special case : sw
-        if(is_store(i->opcode)) {
-            i->rt = b;//sw
-        }
         reg_EX = i->wb;
         if(i->opcode == _jal) reg_write(EX_ME, _ra, i->pc_addr + 4);
-
-
-        //call ALU to work
-        alu_unit(a, b);
+        alu_unit(i->value_s, i->value_t);
     }
 }
 
@@ -154,36 +133,49 @@ void ID(int reg_EX, int reg_ME) {
     ID_decoder();
 
     if(!notNOP(_ID) || !notHALT(_ID)) return;
-
     h_c = hazard_check(reg_EX, reg_ME, dec_regA, dec_regB);
 
     if(!h_c) { 
         int a = reg_read(CPU_REG, i->rs), b = reg_read(CPU_REG, i->rt);
-        if(!is_branch(_ID) && !is_jump(_ID)) return;
-        if(!is_fwd_ID) {
-            if(fwd_ID_s) a = fwd_unit(fwd_ID_type_s);
-            if(fwd_ID_t) b = fwd_unit(fwd_ID_type_t);
-
-            clear_fwd(_ID);
+        
+        if(!is_branch(_ID) && !is_jump(_ID)) {
+            if(i->fwd_ex) {
+                if(i->fwd_to_s != -1) a = fwd_unit(i->fwd_to_s);
+                if(i->fwd_to_t != -1) b = fwd_unit(i->fwd_to_t);
+            }
+            i->value_s = a;
+            i->value_t = b;
+            return;
         }
+
+
+        if(i->fwd_id) {
+            //special case, always fwd EX_ME
+            //but in fact, it fwd things in ME_WB
+            if(i->fwd_to_s != -1) a = reg_read(ME_WB, 0);
+            if(i->fwd_to_t != -1) b = reg_read(ME_WB, 0);
+        }
+
+
+
         if(is_branch(_ID)) {
             if((i->opcode == _beq) && (a == b)) {
                 // BEQ
                 //printf("beq %d %d %d %x\n", a, b, i->c, i->pc_addr);
                 be_flush();
-                pc_jump = i->pc_addr + (i->c * 4);
+                pc_jump = i->pc_addr + 4 + (i->c * 4);
             } else if((i->opcode == _bne) &&(a != b)) {
                 // BNE
                 //printf("bne %d %d %d %x\n", a, b, i->c, i->pc_addr);
                 be_flush();
-                pc_jump = i->pc_addr + (i->c * 4);
+                pc_jump = i->pc_addr + 4 + (i->c * 4);
             }
 
         } else if(is_jump(_ID)) {
-            int pc_31_28 = pc & 0xf0000000;
+            int pc_31_28 = (i->pc_addr + 4) & 0xf0000000;
             be_flush();
 
-            if(i->func == _jr) pc_jump = a - 4;// a = reg[s], -4 to correct outcome
+            if(i->func == _jr) pc_jump = a;
             else if(i->opcode == _j) pc_jump = (pc_31_28 | (i->j_label * 4));
             else pc_jump = (pc_31_28 | (i->j_label * 4));
         }
@@ -212,7 +204,7 @@ void do_stall() {stall = 1;} // let other component can stall
 void be_flush() {flush = 1;}
 
 void do_flush() {
-    pc = pc_jump + 4;
+    pc = pc_jump;
     CPU.pipeline[0] = S_NOP;
     flush = 0;
 }

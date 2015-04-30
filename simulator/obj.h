@@ -30,6 +30,12 @@ struct ins{
     unsigned int j_label;
     char op_name[6];
     int wb;
+    int fwd_id;
+    int fwd_ex;
+    int fwd_to_s;
+    int fwd_to_t;
+    int value_s;
+    int value_t;
 //    int ID_regA;
 //    int ID_regB;
 };
