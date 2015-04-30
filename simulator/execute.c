@@ -29,8 +29,9 @@ void execute() {
         stall = 0;
         reg_EX = -1;
         reg_ME = -1;
-
+        
         reg_output(cyc, stall ,snap_file);
+
 
         //this stage will only be perform when it's not NOP
         if(notNOP(_WB) && notHALT(_WB)) WB();
@@ -68,6 +69,7 @@ void WB() {
 void ME() {
     struct ins* i = CPU.pipeline[2];
     int opc = i->opcode;
+    reg_ME = i->wb;
 
     if(is_load(opc)) {
         int result = 0;
@@ -90,7 +92,6 @@ void ME() {
             result = data_read(offset, 1);
         }
 
-        reg_ME = i->wb;
         reg_write(ME_WB, 0, result);
 
     } else if(is_store(opc)) {
@@ -106,13 +107,11 @@ void ME() {
             data_write(offset, data, 1);
         }
         //reg_ME isn't in use.
-        reg_ME = -1;
     } else {
          
         //has compute something to wait for write back
         if(i->wb != -1) reg_write(ME_WB, 0, reg_read(EX_ME, 0));
         //reg_ME isn't in use.
-        reg_ME = -1;
     }
 }
 
@@ -184,7 +183,7 @@ void ID(int reg_EX, int reg_ME) {
             int pc_31_28 = pc & 0xf0000000;
             be_flush();
 
-            if(i->func == _jr) pc_jump = a; // a = reg[s]
+            if(i->func == _jr) pc_jump = a - 4;// a = reg[s], -4 to correct outcome
             else if(i->opcode == _j) pc_jump = (pc_31_28 | (i->j_label * 4));
             else pc_jump = (pc_31_28 | (i->j_label * 4));
         }
