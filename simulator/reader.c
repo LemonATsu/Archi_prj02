@@ -11,8 +11,6 @@ void image_reader(struct words *ins_array[], struct words *d_array[]) {
     if(i_img_ptr && d_img_ptr) {
         int cnt = 0, d_cnt = 0 ;
         
-        printf("successfully reading iimage.bin and dimage.bin\n");
-        
         while(!feof(i_img_ptr)) {
             struct words *ins = malloc(sizeof(struct words));
             fread(ins->machine_code, sizeof(int), 1, i_img_ptr); 

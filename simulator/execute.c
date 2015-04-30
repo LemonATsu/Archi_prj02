@@ -38,10 +38,11 @@ void execute() {
         ID(reg_EX, reg_ME);
         IF(stall);
 
-
-
         cycle_output(stall, snap_file);
-        if(halt_cnt == 4 && CPU.pipeline[0]->opcode == _halt) break;
+
+        for(x = 4; x >= 0; x --) if(CPU.pipeline[x]->opcode == _halt) halt_cnt++;
+
+        if(halt_cnt == 5) break;
         if(!stall) pc += 4;
         if(flush) do_flush();
         cyc ++;
@@ -204,20 +205,12 @@ void ID(int reg_EX, int reg_ME) {
 
 void IF(int stall) {
     int x;
-    for(x = 4; x > 1; x --) {
-        CPU.pipeline[x] = CPU.pipeline[x - 1];
-        if(CPU.pipeline[x]->opcode == _halt) {halt_cnt++;}
-    }
+    for(x = 4; x > 1; x --) CPU.pipeline[x] = CPU.pipeline[x - 1];
     //if stall, ID will be keep at [0]
     if(!stall) {
         CPU.pipeline[1] = CPU.pipeline[0];
-        if(!flush) {
-            CPU.pipeline[0] = i_memo[pc / 4];
-        }
-        if(CPU.pipeline[1]->opcode == _halt) halt_cnt++;
-    } else {
-        CPU.pipeline[1] = S_NOP;
-    }
+        if(!flush) CPU.pipeline[0] = i_memo[pc / 4];
+    } else CPU.pipeline[1] = S_NOP;
 }
 
 
@@ -227,13 +220,9 @@ void CPU_init() {
         CPU.pipeline[i] = S_NOP;
 }
 
-void do_stall() {
-    stall = 1;
-} // let other component can stall
+void do_stall() {stall = 1;} // let other component can stall
 
-void be_flush() {
-    flush = 1;
-}
+void be_flush() {flush = 1;}
 
 void do_flush() {
     pc = pc_jump + 4;

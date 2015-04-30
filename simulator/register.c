@@ -16,41 +16,21 @@ void reg_init() {
     reg[_sp] = sp;
 }
 
-void reg_copy() {
-    int i;
-    for(i = 0; i < 32; i ++) {
-        reg_temp[i] = reg[i];
-    }
-}
-
 int reg_read(int type, int tar) {
     int result;
-    switch(type) {
-        case CPU_REG:
-            result = reg[tar];
-            break;
-        case EX_ME:
-            result = reg_EX_ME;
-            break;
-        case ME_WB:
-            result = reg_ME_WB;
-            break;
-    }
+    if(type ==CPU_REG) result = reg[tar];
+    else if(type == EX_ME) result = reg_EX_ME;
+    else if(type == ME_WB) result = reg_ME_WB;
 
     return result;
 }
 
 void reg_write(int type, int tar, int data) {
-    switch(type) {
-        case CPU_REG:
-            if(tar == 0) write_to_zero();
-            else reg[tar] = data;
-            break;
-        case EX_ME:
-            reg_EX_ME = data;
-            break;
-        case ME_WB:
-            reg_ME_WB = data;
-            break;
-    }
+
+    if(type == CPU_REG)
+        if(tar == 0) write_to_zero();
+        else reg[tar] = data;
+    else if(type == EX_ME) reg_EX_ME = data;
+    else if(type == ME_WB) reg_ME_WB = data;
+
 }
