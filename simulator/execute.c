@@ -47,6 +47,7 @@ void execute() {
 
         if(!stall) pc += 4;
 
+
         if(flush) do_flush();
 
         cyc ++;
@@ -185,10 +186,7 @@ void ID(int reg_EX, int reg_ME) {
 
             if(i->func == _jr) pc_jump = a; // a = reg[s]
             else if(i->opcode == _j) pc_jump = (pc_31_28 | (i->j_label * 4));
-            else {
-                pc_jump = (pc_31_28 | (i->j_label * 4));
-                // when EX, write to reg. 
-            }
+            else pc_jump = (pc_31_28 | (i->j_label * 4));
         }
     }
     else do_stall();
