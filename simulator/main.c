@@ -9,11 +9,11 @@ int main(int argc, char **argv){
     struct words *ins_array[300000];
     struct words *d_array[300000];
     image_reader(ins_array, d_array);
-    printf("start data init\n");
+    //printf("start data init\n");
     data_init(d_array);
-    printf("start ins init\n");
+    //printf("start ins init\n");
     ins_init(ins_array);
-    printf("start execute\n");
+    //printf("start execute\n");
     execute();
     //data_write(12, 0x56781234);
     //printf("i know sp too: 0x%08x, with data: %08x\n", sp, data_read(12));

@@ -31,7 +31,7 @@ void fwd_init() {
 // but it will fulfill the fwd cnd
 int hazard_check(int reg_EX, int reg_ME, int reg_A, int reg_B) {
     int result = 0, branch = 0;
-    int op_cur = CPU.pipeline[0]->opcode;
+    int op_cur = CPU.pipeline[0]->opcode, func_cur = CPU.pipeline[0]->func;
     int op_ex = CPU.pipeline[1]->opcode;
     int ex_cnd = ((reg_EX != -1) && (reg_EX != 0)); // make sure it is not access 0
     int me_cnd = ((reg_ME != -1) && (reg_ME != 0)); // make sure it is not access 0
@@ -39,8 +39,8 @@ int hazard_check(int reg_EX, int reg_ME, int reg_A, int reg_B) {
     //reg_A is rs, reg_B is rt
     //but for sll/srl/sra, reg_A is rt.
 
-    //check if branch or not
-    if(op_cur == _beq || op_cur == _bne) {
+    //check if branch(jump) or not
+    if(is_branch(_ID) || (op_cur == 0x00 && func_cur == _jr)) {
         branch = 1;
         fwd_des = _ID;
     } else fwd_des = _EX;
@@ -135,10 +135,8 @@ void fwd_signal(int fwd_to, int type, int reg_fwd, int reg_A, int reg_B) {
 int fwd_unit(int fwd_type) {
     int result;
     //if reg_type = 0 is s, 1 is t
-    if(fwd_type == _EX) { //if true, its EX-ME, else ME-WB
-        result = reg_read(EX_ME, 0);
-    } else {
-        result = reg_read(ME_WB, 0);
-    }
+    if(fwd_type == _EX) result = reg_read(EX_ME, 0);
+    else result = reg_read(ME_WB, 0);
+    
     return result;
 }

@@ -24,13 +24,14 @@ void execute() {
         g_cyc = cyc;
         error_output(cyc, err_file);       
         if(error_halt) break;
+
         halt_cnt = 0;
         stall = 0;
         reg_EX = -1;
         reg_ME = -1;
-        //save the register content for later output.
-        //reg_copy();
+
         reg_output(cyc, stall ,snap_file);
+
         //this stage will only be perform when it's not NOP
         if(notNOP(_WB) && notHALT(_WB)) WB();
         if(notNOP(_ME) && notHALT(_ME)) ME();
@@ -43,9 +44,13 @@ void execute() {
         for(x = 4; x >= 0; x --) if(CPU.pipeline[x]->opcode == _halt) halt_cnt++;
 
         if(halt_cnt == 5) break;
+
         if(!stall) pc += 4;
+
         if(flush) do_flush();
+
         cyc ++;
+
         if(cyc >= 1000000) break;
         //if(cyc >= 12) break;
     }
@@ -56,7 +61,7 @@ void execute() {
 
 void WB() {
     struct ins* i = CPU.pipeline[3];
-    reg_write(CPU_REG, i->wb, reg_read(ME_WB, 0));
+    if(i->wb != -1) reg_write(CPU_REG, i->wb, reg_read(ME_WB, 0));
 }
 
 void ME() {
@@ -68,54 +73,43 @@ void ME() {
         int sign = 0;
         short int tmp = 0;
         int offset = reg_read(EX_ME, 0);
-        switch(opc) {
-            case _lw: 
-                result = data_read(offset, 4);
-                break;
-            case _lh: 
-                tmp = data_read(offset, 2);
-                result = tmp;
-                break;
-            case _lhu: 
-                result = data_read(offset, 2);
-                break;
-            case _lb:
-                tmp = data_read(offset, 1);
-                sign = (tmp >> 7) & 1;
-                if(sign) tmp = tmp | 0xffffff00;
-                result = data_read(offset, 1);
-                break;
-            case _lbu:
-                result = data_read(offset, 1);
-                break;
+        if(opc == _lw) { //lw
+            result = data_read(offset, 4);
+        } else if(opc == _lh) { //lh
+            tmp = data_read(offset, 2);
+            result = tmp;
+        } else if(opc == _lhu) { //lhu
+            result = data_read(offset, 2);
+        } else if(opc == _lb) { //lb
+            tmp = data_read(offset, 1);
+            sign = (tmp >> 7) & 1;
+            if(sign) tmp = tmp | 0xffffff00;
+            result = data_read(offset, 1);
+        } else if(opc == _lbu) { //lbu
+            result = data_read(offset, 1);
         }
+
         reg_ME = i->wb;
         reg_write(ME_WB, 0, result);
 
     } else if(is_store(opc)) {
         int data = i->rt;
         int offset = reg_read(EX_ME, 0);
-        switch(opc) {
-            case _sw:
-                data_write(offset, data, 4);
-                break;
-            case _sh:
-                data = data & 0x0000ffff;
-                data_write(offset, data, 2);
-                break;
-            case _sb:
-                data = data & 0x000000ff;
-                data_write(offset, data, 1);
-                break;
+        if(opc == _sw) { //sw
+            data_write(offset, data, 4);
+        } else if(opc == _sh) { //sh
+            data = data & 0x0000ffff;
+            data_write(offset, data, 2);
+        } else if(opc == _sb) { //sb
+            data = data & 0x000000ff;
+            data_write(offset, data, 1);
         }
         //reg_ME isn't in use.
         reg_ME = -1;
     } else {
-
-        if(i->wb != -1) {
-            //has compute something to wait for write back
-            reg_write(ME_WB, 0, reg_read(EX_ME, 0));
-        }
+         
+        //has compute something to wait for write back
+        if(i->wb != -1) reg_write(ME_WB, 0, reg_read(EX_ME, 0));
         //reg_ME isn't in use.
         reg_ME = -1;
     }
@@ -126,7 +120,7 @@ void EX() {
     //printf("%d %s\n", i->wb, i->op_name);
     if(i->wb != -1 || is_store(i->opcode) || is_load(i->opcode)) {
         int a = 0, b = 0;
-        
+
         if(dec_regA != -1) a = reg_read(CPU_REG, dec_regA);
         if(dec_regB != -1) b = reg_read(CPU_REG, dec_regB);
         //check the forwarding status. if = 0, it needs fwd
@@ -145,7 +139,7 @@ void EX() {
         reg_EX = i->wb;
         if(i->opcode == _jal) reg_write(EX_ME, _ra, i->pc_addr + 4);
 
-                        
+
         //call ALU to work
         alu_unit(a, b);
     }
@@ -159,19 +153,17 @@ void ID(int reg_EX, int reg_ME) {
 
     ID_decoder();
 
-    if(!notNOP(_ID) || !notHALT(_ID)) {
-        return;
-    }
-
+    if(!notNOP(_ID) || !notHALT(_ID)) return;
 
     h_c = hazard_check(reg_EX, reg_ME, dec_regA, dec_regB);
+
     if(!h_c) { 
         int a = reg_read(CPU_REG, i->rs), b = reg_read(CPU_REG, i->rt);
-
+        if(!is_branch(_ID) && !is_jump(_ID)) return;
         if(!is_fwd_ID) {
             if(fwd_ID_s) a = fwd_unit(fwd_ID_type_s);
             if(fwd_ID_t) b = fwd_unit(fwd_ID_type_t);
-            
+
             clear_fwd(_ID);
         }
         if(is_branch(_ID)) {
@@ -197,7 +189,6 @@ void ID(int reg_EX, int reg_ME) {
                 pc_jump = (pc_31_28 | (i->j_label * 4));
                 // when EX, write to reg. 
             }
-            //printf("do jump to %x %s %x\n", pc_jump, i->op_name, i->pc_addr);
         }
     }
     else do_stall();

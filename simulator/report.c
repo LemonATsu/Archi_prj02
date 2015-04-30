@@ -59,9 +59,7 @@ void cycle_output(int stall, FILE *output) {
 
         fprintf(output, "ID: %s", CPU.pipeline[1]->op_name);
 
-        if(need_o_id && notNOP(1)) {
-            fwd_output(_ID, output);
-        }
+        if(need_o_id && notNOP(1)) fwd_output(_ID, output);
         fprintf(output, "\n"); 
 
     } else {
@@ -71,10 +69,7 @@ void cycle_output(int stall, FILE *output) {
     }
 
     fprintf(output, "EX: %s", CPU.pipeline[2]->op_name); 
-    if(need_o_ex && notNOP(2)) {
-        fwd_output(_EX, output);
-        o_init(_EX);
-    } 
+    if(need_o_ex && notNOP(2)) fwd_output(_EX, output);
     fprintf(output, "\n"); 
 
     fprintf(output, "DM: %s\n", CPU.pipeline[3]->op_name); 
@@ -107,5 +102,4 @@ void fwd_output(int fwd_to, FILE *output) {
         if(type_t == _EX) fprintf(output, " fwd_EX-DM_rt_$%d", reg_pt);
         else fprintf(output, " fwd_DM-WB_rt_$%d", reg_pt);
     }
-    //clear after print
 }

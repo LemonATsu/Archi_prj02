@@ -9,10 +9,7 @@ void reg_init() {
     reg_ID_EX = 0x00000000;
     reg_EX_ME = 0x00000000;
     reg_ME_WB = 0x00000000;
-    for(i = 0; i < 32; i ++) {
-        reg[i] = 0x00000000;
-        reg_temp[i] = 0x00000000;
-    }
+    for(i = 0; i < 32; i ++) reg[i] = 0x00000000;
     reg[_sp] = sp;
 }
 
