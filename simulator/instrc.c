@@ -2,40 +2,6 @@
 #include <stdlib.h>
 #include "obj.h"
 #include <string.h>
-#define _addi 0x08
-#define _lw 0x23
-#define _lh 0x21
-#define _lhu 0x25
-#define _lb 0x20
-#define _lbu 0x24
-#define _sw 0x2B
-#define _sh 0x29
-#define _sb 0x28
-#define _lui 0x0F
-#define _andi 0x0C
-#define _ori 0x0D
-#define _nori 0x0E
-#define _slti 0x0A
-#define _beq 0x04
-#define _bne 0x05
-#define _j 0x02
-#define _jal 0x03
-#define _halt 0x3F
-
-
-//    func:
-#define _add 0x20
-#define _sub 0x22
-#define _and 0x24
-#define _or 0x25
-#define _xor 0x26
-#define _nor 0x27
-#define _nand 0x28
-#define _slt 0x2A
-#define _sll 0x00
-#define _srl 0x02
-#define _sra 0x03
-#define _jr 0x08
 void ins_init(struct words *i_img[]); 
 void ins_decoder(struct ins* tar, int bits, int offset);
 void opn_decoder(char *tar, int opc, int func, int *wb, int *regA, int *regB, int rd, int rs, int rt);
