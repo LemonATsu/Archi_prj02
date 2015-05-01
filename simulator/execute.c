@@ -137,26 +137,25 @@ void ID(int reg_EX, int reg_ME) {
 
     if(!h_c) { 
         int a = reg_read(CPU_REG, i->rs), b = reg_read(CPU_REG, i->rt);
-        
+        //forward here.
+        if(i->fwd_ex) {
+            if(i->fwd_to_s != -1) a = fwd_unit(i->fwd_to_s);
+            if(i->fwd_to_t != -1) b = fwd_unit(i->fwd_to_t);
+        } else if(i->fwd_id) {
+            //branch is special case.
+            //read the EX_DM before current instruction on EX to write in,
+            //but c is not a parallel language
+            //so we get EX_DM and say it is EX_WB
+            if(i->fwd_to_s != -1) a = reg_read(ME_WB, 0);
+            if(i->fwd_to_t != -1) b = reg_read(ME_WB, 0);
+        }
+        //if not branch, save the value for later use
+        //else no need to save it because it will be used later
         if(!is_branch(_ID) && !is_jump(_ID)) {
-            if(i->fwd_ex) {
-                if(i->fwd_to_s != -1) a = fwd_unit(i->fwd_to_s);
-                if(i->fwd_to_t != -1) b = fwd_unit(i->fwd_to_t);
-            }
             i->value_s = a;
             i->value_t = b;
             return;
         }
-
-
-        if(i->fwd_id) {
-            //special case, always fwd EX_ME
-            //but in fact, it fwd things in ME_WB
-            if(i->fwd_to_s != -1) a = reg_read(ME_WB, 0);
-            if(i->fwd_to_t != -1) b = reg_read(ME_WB, 0);
-        }
-
-
 
         if(is_branch(_ID)) {
             if((i->opcode == _beq) && (a == b)) {

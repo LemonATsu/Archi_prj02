@@ -49,13 +49,13 @@ int hazard_check(int reg_EX, int reg_ME, int reg_A, int reg_B) {
 
     //if they are not equals to -1, it means that it can forward now
     //this will happen only after stall, so the if(ex_cnd) and if(me_cnd) will not be trigger
-    //due to the reason that EX is NOP.
+    //branch/jump is ready to forward.
     if(branch && i->fwd_id) {
         //printf("do branch fowarding\n");
         return 0;
     }
 
-    //refresh forwarding message
+    //clean forwarding message after stall
     if(i->fwd_id || i->fwd_ex) {
         i->fwd_id = 0;
         i->fwd_ex = 0;
