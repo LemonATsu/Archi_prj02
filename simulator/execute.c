@@ -53,7 +53,7 @@ void execute() {
 
 
         if(cyc >= 1000000) break;
-        //if(cyc >= 35) break;
+        //if(cyc >= 2000) break;
     }
     fclose(snap_file);
     fclose(err_file);
@@ -98,6 +98,7 @@ void ME() {
         int offset = reg_read(EX_ME, 0);
         if(opc == _sw) { //sw
             data_write(offset, data, 4);
+            if(g_cyc == 23)printf("I SW HERE %d %08x %08x\n", offset, data_read(offset, 4), data);
         } else if(opc == _sh) { //sh
             data = data & 0x0000ffff;
             data_write(offset, data, 2);
@@ -224,9 +225,9 @@ void ID_decoder() {
         else if(opc == _lhu) strcpy(i->op_name, "LHU");
         else if(opc == _lb) strcpy(i->op_name, "LB");
         else if(opc == _lbu) strcpy(i->op_name, "LBU");
-        else if(opc == _sw) {strcpy(i->op_name, "SW"); i->wb = -1;}
-        else if(opc == _sh) {strcpy(i->op_name, "SH"); i->wb = -1;}
-        else if(opc == _sb) {strcpy(i->op_name, "SB"); i->wb = -1;}
+        else if(opc == _sw) {strcpy(i->op_name, "SW"); i->wb = -1; dec_regB = i->rt;}
+        else if(opc == _sh) {strcpy(i->op_name, "SH"); i->wb = -1; dec_regB = i->rt;}
+        else if(opc == _sb) {strcpy(i->op_name, "SB"); i->wb = -1; dec_regB = i->rt;}
         else if(opc == _lui) {strcpy(i->op_name, "LUI"); dec_regA = -1;}
         else if(opc == _andi) strcpy(i->op_name, "ANDI");
         else if(opc == _ori) strcpy(i->op_name, "ORI");
