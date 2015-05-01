@@ -105,12 +105,10 @@ void ME() {
             data = data & 0x000000ff;
             data_write(offset, data, 1);
         }
-        //reg_ME isn't in use.
     } else {
 
         //has compute something to wait for write back
         if(i->wb != -1) reg_write(ME_WB, 0, reg_read(EX_ME, 0));
-        //reg_ME isn't in use.
     }
 }
 
