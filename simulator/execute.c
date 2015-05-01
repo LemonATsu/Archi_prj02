@@ -86,7 +86,7 @@ void ME() {
             tmp = data_read(offset, 1);
             sign = (tmp >> 7) & 1;
             if(sign) tmp = tmp | 0xffffff00;
-            result = data_read(offset, 1);
+            result = tmp;
         } else if(opc == _lbu) { //lbu
             result = data_read(offset, 1);
         }
@@ -98,7 +98,6 @@ void ME() {
         int offset = reg_read(EX_ME, 0);
         if(opc == _sw) { //sw
             data_write(offset, data, 4);
-            if(g_cyc == 23)printf("I SW HERE %d %08x %08x\n", offset, data_read(offset, 4), data);
         } else if(opc == _sh) { //sh
             data = data & 0x0000ffff;
             data_write(offset, data, 2);
