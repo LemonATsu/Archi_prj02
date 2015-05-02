@@ -23,7 +23,7 @@ void ins_init(struct words *i_img[]) {
     strcpy(S_NOP->op_name, "NOP");
 
 
-    //initialize
+    //initialize more than we might use to prevent
     for(x = 0; x < MEMO_LIMIT; x ++) {
         struct ins* i_init = malloc(sizeof(struct ins));
         ins_decoder(i_init, 0, x * 4);
