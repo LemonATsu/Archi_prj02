@@ -24,7 +24,7 @@ void ins_init(struct words *i_img[]) {
 
 
     //initialize
-    for(x = 0; x < max; x ++) {
+    for(x = 0; x < MEMO_LIMIT; x ++) {
         struct ins* i_init = malloc(sizeof(struct ins));
         ins_decoder(i_init, 0, x * 4);
         i_memo[x] = i_init;

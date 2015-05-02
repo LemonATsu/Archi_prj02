@@ -23,6 +23,7 @@ void cycle_output(int stall, FILE *output) {
 
     if(!stall) {
         //stall only happen in IF & ID
+        if(!CPU.pipeline[0]) printf("STOP!!!\n");
         if(!flush) fprintf(output, "IF: 0x%08X\n", CPU.pipeline[0]->bits);
         else fprintf(output, "IF: 0x%08X to_be_flushed\n", i_memo[pc / 4]->bits);
 

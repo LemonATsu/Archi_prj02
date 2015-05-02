@@ -18,6 +18,9 @@ void execute() {
     error_init();
     reg_init();
     while(1) {
+
+        fflush(snap_file);
+        fflush(err_file);
         g_cyc = cyc;
         error_output(cyc, err_file);       
         if(error_halt) break;
@@ -39,6 +42,7 @@ void execute() {
 
         cycle_output(stall, snap_file);
 
+
         for(x = 4; x >= 0; x --) if(CPU.pipeline[x]->opcode == _halt) halt_cnt++;
 
         if(halt_cnt == 5) break;
@@ -49,7 +53,6 @@ void execute() {
 
         if(flush) do_flush();
         cyc ++;
-
 
 
         if(cyc >= 1000000) break;
@@ -187,6 +190,7 @@ void IF(int stall) {
     if(!stall) {
         CPU.pipeline[1] = CPU.pipeline[0];
         if(!flush) CPU.pipeline[0] = i_memo[pc / 4];
+        else CPU.pipeline[0] = S_NOP;
     } else CPU.pipeline[1] = S_NOP;
 }
 

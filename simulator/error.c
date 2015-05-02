@@ -38,10 +38,12 @@ void misaligned() {
 
 void error_output(int cyc, FILE *output) {
     int x = 0;
+    fflush(output);
     if(error_signal & 0x1) fprintf(output, "In cycle %d: Write $0 Error\n", cyc);
     if((error_signal >> 2) & 0x1) fprintf(output, "In cycle %d: Address Overflow\n", cyc);
     if((error_signal >> 3) & 0x1) fprintf(output, "In cycle %d: Misalignment Error\n", cyc);
     if((error_signal >> 1) & 0x1) fprintf(output, "In cycle %d: Number Overflow\n", cyc);
     if((error_signal >> 4) & 0x1) error_halt = 1;
     error_signal = 0;
+    fflush(output);
 }

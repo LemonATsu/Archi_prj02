@@ -28,7 +28,7 @@ struct ins{
     int func;
     short c;
     unsigned int j_label;
-    char op_name[6];
+    char op_name[10];
     int wb;
     int fwd_id;
     int fwd_ex;
