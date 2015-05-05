@@ -49,14 +49,11 @@ void execute() {
 
         if(!stall) pc += 4;
         //printf("cyc:%d %08x %08x %08x\n", cyc, reg[9], reg_EX_ME, reg_ME_WB);
-
-
         if(flush) do_flush();
         cyc ++;
 
-
-        if(cyc >= 1000000) break;
-        //if(cyc >= 2000) break;
+        if(cyc >= 500000) break;
+        //if(cyc >= 1900) break;
     }
     fclose(snap_file);
     fclose(err_file);
@@ -136,6 +133,7 @@ void ID(int reg_EX, int reg_ME) {
     if(!notNOP(_ID) || !notHALT(_ID)) return;
     h_c = hazard_check(reg_EX, reg_ME, dec_regA, dec_regB);
 
+
     if(!h_c) { 
         int a = reg_read(CPU_REG, i->rs), b = reg_read(CPU_REG, i->rt);
         //forward here.
@@ -175,7 +173,7 @@ void ID(int reg_EX, int reg_ME) {
             int pc_31_28 = (i->pc_addr + 4) & 0xf0000000;
             be_flush();
 
-            if(i->func == _jr) pc_jump = a;
+            if(i->func == _jr && i->opcode == 0x00) pc_jump = a;
             else if(i->opcode == _j) pc_jump = (pc_31_28 | (i->j_label * 4));
             else pc_jump = (pc_31_28 | (i->j_label * 4));
         }

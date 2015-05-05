@@ -80,10 +80,10 @@ int hazard_check(int reg_EX, int reg_ME, int reg_A, int reg_B) {
             // the data is already write back to register(first half cycle)
             if(!branch) fwd_signal(fwd_des, _ME, reg_ME, reg_A, reg_B);
             else {
-                // special case. If load, it cannot fwd from EX_DM
-                // if it's normal operation, and then it can do fwd;
                 if(is_load(op_me)) result = 1;
-                else fwd_signal(_ID, _EX, reg_ME, reg_A, reg_B);
+                else if(!result) {
+                    fwd_signal(_ID, _EX, reg_ME, reg_A, reg_B);
+                } 
             }
     }
 
