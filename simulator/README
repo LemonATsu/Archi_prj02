@@ -4,13 +4,17 @@
 #   ID: 102062207                                                  #
 #   Name: 蘇仕揚                                                   #
 #                                                                  #
-#       This is a readme file about Archi project1, which contains #
+#       This is a readme file about Archi project2, which contains #
 #   information about its working process, design, of some details #
 #   related to this program.                                       #
 #                                                                  # 
 #   The simulator directory contains:                              # 
 #   main.c, reader.c, data.c, instrc.c, execute.c, operator.c,     # 
 #   error.c, obj.h, execute.h, operator.h, Makefile, README        #
+#   alu.c, alu.h, report.c, report.h, hazard.c, hazard.h           #
+#                                                                  #
+#                                                                  #
+#                                                                  #
 #                                                                  #
 ####################################################################
 
@@ -72,3 +76,12 @@ the process of a cpu. It is consisting of 9 different parts:
 #error:
     The error.c is provide function to check if error occur.
     operator, data, register will use the function inside error.c
+
+#alu:
+    alu operation
+
+#report:
+    cylce output
+
+#hazard:
+    dealing with hazard.
