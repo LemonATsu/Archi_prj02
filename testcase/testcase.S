@@ -1,5 +1,4 @@
 # initial pc =100
-    bne $9, $0, E1
     lw $8, 4($0)   # reg[8] = 0x8000 0000
     addi $8, $8, -1 # reg[8] = 0x7FFF FFFF
     lh $9, 50($0) # reg[9] = 0xFFFF FFFF
@@ -91,7 +90,12 @@ Q5: lw $8, 0($8)
     addi $8, $0, $0
     addi $9, $0, $0
     jr $8 #jump to pc = 0
-E1: lw $8, 76($0) #reg[t] = 0000 0000
+    lw $8, 76($0) #reg[t] = 0000 0000
+    beq $12, $12, N2
+N2: bne $12, $7, N3
+N3: sll $0, $0, 0
+    sra $12, $31, 16
+    addi $13, $12, 4
     lw $0, -2($14) # 4 error at same time
     jr $ra
     done

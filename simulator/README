@@ -28,7 +28,9 @@ the process of a cpu. It is consisting of 9 different parts:
 7. operator
 8. register
 9. error 
-
+10. alu
+11. report
+12. hazard
 
 
 #Makefile:
